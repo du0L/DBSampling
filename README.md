@@ -27,5 +27,5 @@ eg:
 
 使用用户名密码登陆数据库
 
-    databases.exe -IP 192.168.0.9 -Windows_verification=flase -uesranme=sa -password=123456 >out.htlm
+    databases.exe -IP 192.168.0.9 -Windows_verification=flase -uesranme=sa -password=123456 >out.html
 
