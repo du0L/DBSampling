@@ -27,8 +27,6 @@ func (m *Mssql) Open() (err error) {
 	conf = append(conf,"server="+m.server)
 	conf = append(conf, "Provider=SQLOLEDB")
 	if m.windows {
-		// Integrated Security=SSPI 这个表示以当前WINDOWS系统用户身去登录SQL SERVER服务器(需要在安装sqlserver时候设置)，
-		// 如果SQL SERVER服务器不支持这种方式登录时，就会出错。
 		conf = append(conf, "integrated security=SSPI")
 	}else {
 		conf = append(conf, "Initial Catalog="+m.database)
@@ -152,7 +150,7 @@ func main() {
 	username :=flag.String("username","sa","databases username , default is 'sa'")
 	password:=flag.String("password","password","databases password , default is 'password'")
 
-	fmt.Println(*IP,*windows,*username,*password)
+	//fmt.Println(*IP,*windows,*username,*password)
 
 	flag.Parse()
 
