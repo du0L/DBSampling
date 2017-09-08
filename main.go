@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"log"
-	_ "github.com/denisenkom/go-mssqldb"
 	"flag"
+	_ "github.com/alexbrainman/odbc"
 )
 
 type Mssql struct {
@@ -15,6 +15,7 @@ type Mssql struct {
 	database   string
 	windows    bool
 	sa         SA
+	port string
 }
 
 type SA struct {
@@ -24,7 +25,8 @@ type SA struct {
 //数据库配置
 func (m *Mssql) Open() (err error) {
 	var conf []string
-	conf = append(conf,"server="+m.server)
+	conf = append(conf,"driver={sql server}")
+	conf = append(conf,"server="+m.server+","+m.port)
 	conf = append(conf, "Provider=SQLOLEDB")
 	if m.windows {
 		conf = append(conf, "integrated security=SSPI")
@@ -34,9 +36,9 @@ func (m *Mssql) Open() (err error) {
 		conf = append(conf, "password="+m.sa.passwd)
 	}
 
-	m.DB, err = sql.Open("sqlserver", strings.Join(conf, ";"))
+	m.DB, err = sql.Open("odbc", strings.Join(conf, ";"))
 	if err != nil {
-		return err
+		fmt.Println(err)
 	}
 	return nil
 }
@@ -46,7 +48,7 @@ func get_db_name(db Mssql)(db_name_list []string){
 	query := "SELECT Name FROM Master..SysDatabases ORDER BY Name"
 	rows, err := db.Query(query)
 	if err != nil {
-		fmt.Println("query: ", err)
+		fmt.Println("query: ", err.Error()+"!!!")
 		return
 	}
 	for rows.Next() {
@@ -79,7 +81,8 @@ func get_tables_name(db Mssql,dbname string)(tables_list []string){
 }
 //获取所有字段名
 func get_columns_list(db Mssql,dbname string,tableName string)(columns_list []string){
-	query := "USE " + dbname + ";SELECT Name from SysColumns WHERE id=Object_Id('" + tableName + "')"
+	db.Exec("USE " + dbname + ";")
+	query := "SELECT Name from SysColumns WHERE id=Object_Id('" + tableName + "')"
 	columns_query,err := db.Query(query)
 	if err != nil {
 		fmt.Println("query: ", err)
@@ -98,16 +101,17 @@ func get_columns_list(db Mssql,dbname string,tableName string)(columns_list []st
 }
 
 //获取数据条数
-func getDataCount(db Mssql,dbname string,tableName string)(columns_list string){
-	query := "USE " + dbname + ";SELECT COUNT(*) AS COUNT FROM " + "\"" + tableName + "\""
-	count,err := db.Query(query)
+func getDataCount(db Mssql,dbname string,tableName string)(columns_list int) {
+	db.Exec("USE " + dbname+";")
+	query := "SELECT COUNT(1) AS COUNT FROM " + "\""+ tableName + "\""
+	count , err := db.Query(query)
 	if err != nil {
 		fmt.Println("query: ", err)
 		return
 	}
 
 	for count.Next() {
-		var count_name string
+		var count_name int
 		if err := count.Scan(&count_name ); err != nil {
 			log.Fatal(err)
 		}
@@ -120,7 +124,8 @@ func getDataCount(db Mssql,dbname string,tableName string)(columns_list string){
 func getDataSamp(db Mssql,dbname string,tableName string,columns_list []string)(DataSamp_list map[string][]string){
 	DataSamp_list = make(map[string][]string)
 	for _,columnsName := range columns_list {
-		query := "USE " + dbname + ";SELECT TOP 20 " +columnsName+ " FROM " + "\"" + tableName + "\""
+		db.Exec("USE " + dbname +";")
+		query := "SELECT TOP 20 " +columnsName+ " FROM " + "\"" + tableName + "\""
 		var DataSamp string
 		Samp, err := db.Query(query)
 		if err != nil {
@@ -149,6 +154,7 @@ func main() {
 	windows := flag.Bool("Windows_verification",true,"use Windows verification(true or false), default is true")
 	username :=flag.String("username","sa","databases username , default is 'sa'")
 	password:=flag.String("password","password","databases password , default is 'password'")
+	port := flag.String("port","1433","databases port , default is 1433")
 
 	//fmt.Println(*IP,*windows,*username,*password)
 
@@ -157,6 +163,7 @@ func main() {
 	db := Mssql{
 		server: *IP ,
 		windows: *windows,
+		port:	*port,
 		sa: SA{
 			user:   *username,
 			passwd: *password,
@@ -174,7 +181,7 @@ func main() {
 	fmt.Println("<body>")
 
 	DatabaseList := get_db_name(db)
-	var DataCount string
+	var DataCount int
 	TablesList := make(map[string][]string)
 
 	for _,GetDatabasesName := range DatabaseList {
@@ -190,9 +197,9 @@ func main() {
 					//Columns_List[GetTablesName] = ColumnsList
 					GetSamp := getDataSamp(db,GetDatabasesName,GetTablesName,ColumnsList)
 					fmt.Println("<table border=\"1\" cellspacing=\"0\">")
-					fmt.Print("<tr><td>"+"databases name"+"</td>"+"<td>"+GetDatabasesName+"</td></tr>\n")
-					fmt.Println("<tr><td>"+"DataCount "+"</td><td>"+DataCount+"</td></tr>")
-					fmt.Print("<tr><td>"+"table name"+"</td><td>"+GetTablesName+"</td>\n")
+					fmt.Println("<tr><td>"+"databases name"+"</td>"+"<td>"+GetDatabasesName+"</td></tr>")
+					fmt.Println("<tr><td>"+"DataCount "+"</td><td>",DataCount,"</td></tr>")
+					fmt.Println("<tr><td>"+"table name"+"</td><td>"+GetTablesName+"</td>")
 					fmt.Println("<tr><td>"+"columns name </td>")
 					for _,text := range GetColumnsList{
 						fmt.Println("<tr>")
