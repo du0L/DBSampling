@@ -6,18 +6,25 @@
 
 没有写输出文件，用起来比较麻烦，需要重定向到一个文件
 
-使用方法：
+添加了过滤数据条数的功能
 
-    databases.exe -help
-      -IP string
-          databases IP address , default is '127.0.0.1' (default "127.0.0.1")  
-      -Windows_verification
-          use Windows verification(true or false), default is true (default true)    
-     -password string
-          databases password , default is 'password' (default "password")    
-      -username string  
-          databases username , default is 'sa' (default "sa")    
-     exit status 2
+
+使用方法：
+```
+Usage of databases.exe:
+  -IP string
+        databases IP address , default is '127.0.0.1' (default "127.0.0.1")
+  -Windows_verification
+        use Windows verification(true or false), default is true (default true)
+  -bypass int
+        bypass data count,default is 0
+  -password string
+        databases password , default is 'password' (default "password")
+  -port string
+        databases port , default is 1433 (default "1433")
+  -username string
+        databases username , default is 'sa' (default "sa")
+```
 
 eg:
 
