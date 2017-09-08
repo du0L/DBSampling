@@ -155,7 +155,7 @@ func main() {
 	username :=flag.String("username","sa","databases username , default is 'sa'")
 	password:=flag.String("password","password","databases password , default is 'password'")
 	port := flag.String("port","1433","databases port , default is 1433")
-
+	bypass := flag.Int("bypass",0,"bypass data count,default is 0")
 	//fmt.Println(*IP,*windows,*username,*password)
 
 	flag.Parse()
@@ -190,7 +190,8 @@ func main() {
 			Tables_list := get_tables_name(db,GetDatabasesName)
 			for _,GetTablesName := range Tables_list{
 				DataCount = getDataCount(db,GetDatabasesName,GetTablesName)
-				if GetTablesName != "sysdiagrams" {
+				if DataCount >= *bypass{
+					if GetTablesName != "sysdiagrams" {
 					TablesList[GetDatabasesName] = Tables_list
 					ColumnsList := get_columns_list(db,GetDatabasesName,GetTablesName)
 					GetColumnsList := ColumnsList
@@ -215,7 +216,7 @@ func main() {
 					fmt.Println("</table>")
 					fmt.Println("<br>")
 					fmt.Println()
-				}
+				}}
 			}
 		}
 	}
