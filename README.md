@@ -1,4 +1,4 @@
-# DBSampling
+#databases sampling
 
 一个简单的MSSQL数据库取样工具
 
@@ -34,5 +34,5 @@ eg:
 
 使用用户名密码登陆数据库
 
-    databases.exe -IP 192.168.0.9 -Windows_verification=flase -uesranme=sa -password=123456 >out.html
+    databases.exe -IP 192.168.0.9 -Windows_verification=false -username=sa -password=123456 >out.html
 
